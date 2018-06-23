@@ -227,5 +227,5 @@ Route::group(['prefix'=>'member'],function(){
 
 //路由中输出识图
 Route::get('view', function () {
-    return view('welcome');
+    //return view('welcome');
 });
