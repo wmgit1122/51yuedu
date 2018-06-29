@@ -56,7 +56,12 @@ class LoginController extends CommonController
                 Session::put('user',$user);
 		        Session::save();
             }
-            Response::show(1,'登录成功');
+            //Response::show(1,'登录成功');
+            return array(
+                'code' => 1,
+                'msg' => '成功',
+                'data' => []
+            );
         }
         $tpl_dara=[];
         return view('login.index',$tpl_dara);
