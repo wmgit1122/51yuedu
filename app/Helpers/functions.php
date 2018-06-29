@@ -4,6 +4,7 @@
  * Date: 2018/3/29
  * Time: 15:41
  */
+use Illuminate\Support\Facades\Redis;
 
 function DeleteHtml($str)
 {
@@ -209,6 +210,7 @@ function get_chapter_order_price($book_id,$chapter_order){
 }
 
 function auto_sign($openid){
+    return false;
     require_once app_path().'/Tools/wechat/lanewechat.php';
     //自动签到
     //检查今天有没有签到
@@ -318,4 +320,15 @@ function get_like_books($uid){
     }
 
     return $book_list;
+}
+
+function get_book_deal($id){
+    $redis_key='book_id_'.$id;
+    if(empty(Redis::get($redis_key))){
+        $deal=BookPool::where('id', $id)->first();
+        Redis::setex($redis_key,config('common.redis_timeout'),serialize($deal));
+    }else{
+        $deal=unserialize(Redis::get($redis_key));
+    }
+    return $deal;
 }

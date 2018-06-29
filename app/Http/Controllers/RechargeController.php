@@ -19,6 +19,9 @@ class RechargeController extends CommonController
 {
 
     public function index(){
+        if(!session()->has('user')){
+            return redirect('/login');
+        }
         $price=request()->route('price');
         $uid=session()->get('user.uid');
         $user_info=get_user_info($uid);

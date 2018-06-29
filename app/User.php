@@ -14,5 +14,5 @@ class User extends Model
 
     public $timestamps=false;
 
-    protected $fillable = ['username', 'avatar', 'gender', 'city', 'book_coin', 'auto_consume', 'login_type', 'updatetime', 'createtime', 'openid'];
+    protected $fillable = ['username', 'avatar', 'gender', 'city', 'book_coin', 'auto_consume', 'login_type', 'updatetime', 'createtime', 'openid','email'];
 }

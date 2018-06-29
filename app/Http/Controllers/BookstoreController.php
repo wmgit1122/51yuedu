@@ -13,6 +13,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use App\RecommendBook;
 use App\BookPool;
+use Illuminate\Support\Facades\Redis;
 
 class BookstoreController extends Controller
 {
@@ -26,24 +27,26 @@ class BookstoreController extends Controller
             $channel[$key]->total=get_category_count($val->category_id);
         }
         $category_info=get_category_info($category_id);
+        $where=[];
         if(!empty($category_id)){
-            $list=DB::table("book_pool")
-                ->select('book_pool.*')
-                ->where('book_pool.isdelete',0)
-                ->where('book_pool.shelf_status','1')
-                ->where('book_pool.category_id',$category_id)
-                ->orderBy('id', 'desc')
-                ->skip(0)->take(10)
-                ->get();
-        }else{
-            $list=DB::table("book_pool")
-                ->select('book_pool.*')
-                ->where('book_pool.isdelete',0)
-                ->where('book_pool.shelf_status','1')
-                ->orderBy('id', 'desc')
-                ->skip(0)->take(10)
-                ->get();
+            $where['book_pool.category_id']=$category_id;
         }
+        $redis_key='Bookstore_'.$category_id;
+        //dd(Redis::get($redis_key));
+        if(empty(Redis::get($redis_key))){
+            $list=DB::table("book_pool")
+                ->select('book_pool.*')
+                ->where($where)
+                ->where('book_pool.isdelete',0)
+                ->where('book_pool.shelf_status','1')
+                ->orderBy('id', 'desc')
+                ->skip(0)->take(10)
+                ->get();
+            Redis::setex($redis_key, config('common.redis_timeout'), serialize($list));
+        }else{
+            $list=unserialize(Redis::get($redis_key));
+        }
+
         $tpl_dara = array(
             'list' => $list,
             'user_info' => $user_info,
@@ -93,14 +96,20 @@ class BookstoreController extends Controller
         $page=$request->input('page',1);
         $pagesize=$request->input('pagesize',10);
         $start=($page-1)*$pagesize;
-        $list=DB::table("book_pool")
-            ->select('book_pool.*')
-            ->where('book_pool.isdelete',0)
-            ->where('book_pool.shelf_status','1')
-            ->where($where)
-            ->orderBy('id', 'desc')
-            ->skip($start)->take($pagesize)
-            ->get();
+        $redis_key=$category_id.'_'.$progress.'_'.$channel_id.'_'.$page;
+        if(empty(Redis::get($redis_key))){
+            $list=DB::table("book_pool")
+                ->select('book_pool.*')
+                ->where('book_pool.isdelete',0)
+                ->where('book_pool.shelf_status','1')
+                ->where($where)
+                ->orderBy('id', 'desc')
+                ->skip($start)->take($pagesize)
+                ->get();
+            Redis::setex($redis_key, config('common.redis_timeout'), serialize($list));
+        }else{
+            $list=unserialize(Redis::get($redis_key));
+        }
         $html='';
         if(!empty($list)){
             foreach($list as $key=>$val){

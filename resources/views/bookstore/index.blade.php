@@ -87,7 +87,7 @@
     .loading,.endP{text-align: center;padding: 5px 0 15px;color: #999;}
 </style>
 <div class="unit pdlr10" style="margin-top:15px;">
-    <div class="sstag" style="float: right;">
+    <div class="sstag" style="float: left;">
         <div class="classids" id="nv1">
             <span class="label">分类:</span>
             <a href="javascript:void(0);" class="active" onclick="select(0,this)" >不限</a>
@@ -116,7 +116,7 @@
 
 <div id="loadmore" pagenum="4" totalnum="10676" totalpage="1068" keyword="" keywordtype="1" pclassids="0" classids="0" free="0" finish="0" charnum="0" updatetime="0" order="1"></div>
 {{--<div class="tit"><h1 class="cgray" id="totalcount">共有10676条搜索结果</h1></div>--}}
-<div class="novel-list" id="novel-list">
+<div class="novel-list" id="novel-list" style="float: left;">
 @foreach($list as $val)
     <div class="novel-item">
         <div class="novel-image">

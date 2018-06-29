@@ -27,20 +27,20 @@ class CommonController extends Controller
     public function __construct(){
        //用户进来判断用户有没有去微信授权
         if(!session()->has('user')){
-            require_once app_path().'/Tools/wechat/lanewechat.php';
-            $redirect_uri ='http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].$_SERVER['QUERY_STRING'];
-            if(!isset($_GET['code'])){
-                /**
-                 * 网页授权
-                 */
-                /**
-                 * Description: 获取CODE
-                 * @param $scope snsapi_base不弹出授权页面，只能获得OpenId;snsapi_userinfo弹出授权页面，可以获得所有信息
-                 * 将会跳转到redirect_uri/?code=CODE&state=STATE 通过GET方式获取code和state
-                 */
-                $redirect_uri ='http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].$_SERVER['QUERY_STRING'];
-                \LaneWeChat\Core\WeChatOAuth::getCode($redirect_uri, $state=1, $scope='snsapi_userinfo');//授权
-            }else {
+//            require_once app_path().'/Tools/wechat/lanewechat.php';
+//            $redirect_uri ='http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].$_SERVER['QUERY_STRING'];
+//            if(!isset($_GET['code'])){
+//                /**
+//                 * 网页授权
+//                 */
+//                /**
+//                 * Description: 获取CODE
+//                 * @param $scope snsapi_base不弹出授权页面，只能获得OpenId;snsapi_userinfo弹出授权页面，可以获得所有信息
+//                 * 将会跳转到redirect_uri/?code=CODE&state=STATE 通过GET方式获取code和state
+//                 */
+//                $redirect_uri ='http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].$_SERVER['QUERY_STRING'];
+//                \LaneWeChat\Core\WeChatOAuth::getCode($redirect_uri, $state=1, $scope='snsapi_userinfo');//授权
+//            }else {
                 /**
                  * Description: 通过code换取网页授权access_token
                  * 首先请注意，这里通过code换取的网页授权access_token,与基础支持中的access_token不同。
@@ -49,34 +49,34 @@ class CommonController extends Controller
                  * @param $code getCode()获取的code参数
                  */
 
-                $code = $_GET['code'];
-                $res = \LaneWeChat\Core\WeChatOAuth::getAccessTokenAndOpenId($code);
-    
-                //获取用户信息
-                $user_info = \LaneWeChat\Core\UserManage::getUserInfo2($res['openid'], $res['access_token']);
-
-                //检查用户有没有注册过
-                $user=User::where('openid', $user_info['openid'])->first();
-                if(empty($user)){
-                    $adddata=array(
-                        'openid'=>$user_info['openid'],
-                        'username'=>$user_info['nickname'],
-                        'avatar'=>$user_info['headimgurl'],
-                        'avatar'=>$user_info['headimgurl'],
-                        'gender'=>$user_info['sex'],
-                        'city'=>$user_info['city'],
-                        'createtime'=>time(),
-                    );
-
-                    User::create($adddata);
-                    $user=User::where('openid', $user_info['openid'])->first();
-                    session()->put('user',$user);
-                }else{
-                    session()->put('user',$user);
-                }
+//                $code = $_GET['code'];
+//                $res = \LaneWeChat\Core\WeChatOAuth::getAccessTokenAndOpenId($code);
+//
+//                //获取用户信息
+//                $user_info = \LaneWeChat\Core\UserManage::getUserInfo2($res['openid'], $res['access_token']);
+//
+//                //检查用户有没有注册过
+//                $user=User::where('openid', $user_info['openid'])->first();
+//                if(empty($user)){
+//                    $adddata=array(
+//                        'openid'=>$user_info['openid'],
+//                        'username'=>$user_info['nickname'],
+//                        'avatar'=>$user_info['headimgurl'],
+//                        'avatar'=>$user_info['headimgurl'],
+//                        'gender'=>$user_info['sex'],
+//                        'city'=>$user_info['city'],
+//                        'createtime'=>time(),
+//                    );
+//
+//                    User::create($adddata);
+//                    $user=User::where('openid', $user_info['openid'])->first();
+//                    session()->put('user',$user);
+//                }else{
+//                    session()->put('user',$user);
+//                }
 
             }
-        }
+//        }
 
     }
 

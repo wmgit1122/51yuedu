@@ -108,16 +108,18 @@ return [
             'cluster' => env('REDIS_CLUSTER', true),
             'options'=>['cluster'=>'redis'],  //官网没说这个,这是必须的！！后面会讲为什么这么配?
             'default' => [
-            'host' => env('REDIS_HOST', '127.0.0.1'), //任选一个master节点
-            'port' => env('REDIS_PORT',7000),
-            'database' => 0,
-            'timeout'=>15,
-            'read_write_timeout'=>1800 //redis客户端连接以后的读写超时时间(默认是60s)
-        ],
-        'extra'=>[
-            'host'=>env('REDIS_EXTRA_HOST','127.0.0.1'),  //任意一个集群中的节点即可
-            'port'=>env('REDIS_EXTRA_PORT',7001)
-        ]
+                'host' => env('REDIS_HOST', '127.0.0.1'), //任选一个master节点
+                'port' => env('REDIS_PORT',6379),
+                'password' => env('REDIS_PASSWORD', null),
+                'database' => 0,
+                'timeout'=>15,
+                'read_write_timeout'=>1800 //redis客户端连接以后的读写超时时间(默认是60s)
+            ],
+            'extra'=>[
+                'host'=>env('REDIS_EXTRA_HOST','127.0.0.1'),  //任意一个集群中的节点即可
+                'port'=>env('REDIS_EXTRA_PORT',6379),
+		'password' => env('REDIS_PASSWORD', null),
+            ]
     ],
 
 ];

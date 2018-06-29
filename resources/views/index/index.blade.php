@@ -193,59 +193,11 @@
     })
 </script>
 
-    <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
-    <script>
-        var wxShare = {
-            wxTitle : '51阅吧',
-            wxDesc : '51阅读，你想看的，你不想看，你有的，你没有的，都在这里哦，每天都要读书',
-            imgUrl : '{{asset('static/images/logo.jpg')}}',
-            linkUrl : "http://read.iyuebang.com/"
-        };
-        wx.config({
-            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
-            appId: '{{ $signPackage["appId"] }}',
-            timestamp: {{ $signPackage["timestamp"] }},
-            nonceStr: '{{ $signPackage["nonceStr"] }}',
-            signature: '{{ $signPackage["signature"] }}',
-            jsApiList: ['onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo','onMenuShareQZone'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
-        });
-        wx.ready(function(){
-            wx.onMenuShareTimeline({
-                title:wxShare.wxTitle, // 分享标题
-                link:wxShare.linkUrl, // 分享链接
-                imgUrl:wxShare.imgUrl, // 分享图标
-                success: function () {
-                    // 用户确认分享后执行的回调函数
-                },
-                cancel: function () {
-                    // 用户取消分享后执行的回调函数
-                }
-            });
-            wx.onMenuShareAppMessage({
-                title:wxShare.wxTitle, // 分享标题
-                desc:wxShare.wxDesc, // 分享描述
-                link:wxShare.linkUrl,// 分享链接
-                imgUrl:wxShare.imgUrl, // 分享图标
-                type: '', // 分享类型,music、video或link，不填默认为link
-                dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
-                success: function () {
-                    // 用户确认分享后执行的回调函数
-                },
-                cancel: function () {
-                    // 用户取消分享后执行的回调函数
-                }
-            });
-        });
-        wx.error(function(res){
-            alert('网络出错');
-        });
-    </script>
+
 @endsection
 @section('footer')
 <div style="margin-top:20px;padding:15px 0;text-align:center;border-top:#eee 1px solid;line-height:1.7em;color:#999;">
-    <img style="width:48%;display:block;margin:20px auto;" src="//open.weixin.qq.com/qr/code?username=gh_da9e0739a442">
-        长按识别上方二维码关注微信公众号<br/>
-   <div style="text-align:center;font-size:13px">南京越邦信息科技有限公司版权所有<br/>
+   <div style="text-align:center;font-size:13px">本站均有网友上传，免费阅读开源项目<br/>
     苏ICP备14023933号-1<br/></div>
     
 </div>

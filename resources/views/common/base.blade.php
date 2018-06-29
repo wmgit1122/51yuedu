@@ -31,11 +31,19 @@
 
 @section('user-profile-bar')
 <div id="user-profile-bar" class="user-profile-bar">
+    @if(!empty(session('user')))
     <a href="{{ url('user') }}">
         <span class="headimg"><img style="width:24px;height:24px;vertical-align:middle;border-radius:18px" src="{{ session('user.avatar') }}"></span>
         <span class="nickname" style="vertical-align:middle">{{ session('user.username') }}</span>
         <span style="float:right;vertical-align: middle">个人中心</span>
     </a>
+  @else
+    <a href="{{ url('login') }}">
+        <span class="headimg"><i class="iconfont icon-head"></i></span>
+        <span class="nickname" style="vertical-align:middle">匿名用户</span>
+        <span style="float:right;vertical-align: middle">个人中心</span>
+    </a>
+    @endif
 </div>
 @show
 

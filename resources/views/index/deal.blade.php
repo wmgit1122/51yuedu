@@ -119,52 +119,7 @@
         @endif
     })
 </script>
-<script>
-    var wxShare = {
-        wxTitle : '{{ $deal->book_name  }}',
-        wxDesc : ' {{ str_limit(DeleteHtml($deal->intro), $limit = 100, $end = '...')}}',
-        imgUrl : '{{asset('static/'.$deal->cover_img)}}',
-        linkUrl : "{{ url('deal/'.$deal->id) }}"
-    };
-    wx.config({
-        debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
-        appId: '{{ $signPackage["appId"] }}',
-        timestamp: {{ $signPackage["timestamp"] }},
-        nonceStr: '{{ $signPackage["nonceStr"] }}',
-        signature: '{{ $signPackage["signature"] }}',
-        jsApiList: ['onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo','onMenuShareQZone'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
-    });
-    wx.ready(function(){
-        wx.onMenuShareTimeline({
-            title:wxShare.wxTitle, // 分享标题
-            link:wxShare.linkUrl, // 分享链接
-            imgUrl:wxShare.imgUrl, // 分享图标
-            success: function () {
-                // 用户确认分享后执行的回调函数
-            },
-            cancel: function () {
-                // 用户取消分享后执行的回调函数
-            }
-        });
-        wx.onMenuShareAppMessage({
-            title:wxShare.wxTitle, // 分享标题
-            desc:wxShare.wxDesc, // 分享描述
-            link:wxShare.linkUrl,// 分享链接
-            imgUrl:wxShare.imgUrl, // 分享图标
-            type: '', // 分享类型,music、video或link，不填默认为link
-            dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
-            success: function () {
-                // 用户确认分享后执行的回调函数
-            },
-            cancel: function () {
-                // 用户取消分享后执行的回调函数
-            }
-        });
-    });
-    wx.error(function(res){
-        alert('网络出错');
-    });
-</script>
+
 <script src="https://cdn.bootcss.com/jquery/1.11.0/jquery.min.js"></script>
 <script src="https://cdn.bootcss.com/jquery-weui/1.2.0/js/jquery-weui.min.js"></script>
 @endsection

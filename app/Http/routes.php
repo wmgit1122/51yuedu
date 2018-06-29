@@ -25,6 +25,10 @@ Route::group(['middleware' => ['web']], function () {
 
     Route::any('/',['uses'=>'IndexController@index']);
 
+    Route::any('login',['uses'=>'LoginController@index']);
+
+    Route::any('get_code',['uses'=>'LoginController@get_code']);
+
     Route::any('deal/{id}',['uses'=>'IndexController@deal'])->where('id','[0-9]+');
 
     Route::any('chapter_list/{id}',['uses'=>'IndexController@chapter_list']);

@@ -21,6 +21,8 @@ class VerifyCsrfToken extends BaseVerifier
         'user/del_readlog',
         'user/book_coin_log',
         'user/bookshelf_list',
-        'user/del_bookshelf'
+        'user/del_bookshelf',
+        'get_code',
+	    'login',
     ];
 }

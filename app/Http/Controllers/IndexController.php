@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 use App\RecommendBook;
 use App\BookPool;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Redis;
+use App\lib\Response;
 
 class IndexController extends CommonController
 {
@@ -22,67 +24,100 @@ class IndexController extends CommonController
     public function index(){
         $uid=session()->get('user.uid');
         //最近阅读的图书
-        $last_read_chapter=DB::table("book_read_log")
-            ->join('book_pool', 'book_read_log.book_id', '=', 'book_pool.id')
-            ->select('book_pool.book_name','book_read_log.book_id','book_read_log.chapter_order')
-            ->where('book_read_log.uid',session()->get('user.uid'))
-            ->where('book_pool.shelf_status',1)
-            ->orderBy('book_read_log.createtime', 'desc')
-            ->first();
+        $last_read_chapter=Redis::get('last_read_chapter');
+        if(empty($last_read_chapter)){
+            $last_read_chapter=DB::table("book_read_log")
+                ->join('book_pool', 'book_read_log.book_id', '=', 'book_pool.id')
+                ->select('book_pool.book_name','book_read_log.book_id','book_read_log.chapter_order')
+                ->where('book_read_log.uid',session()->get('user.uid'))
+                ->where('book_pool.shelf_status',1)
+                ->orderBy('book_read_log.createtime', 'desc')
+                ->first();
+            Redis::setex('last_read_chapter', config('common.redis_timeout'), serialize($last_read_chapter));
+        }else{
+            $last_read_chapter=unserialize($last_read_chapter);
+        }
         //自定义分享
         //微信自定义分享
-        require_once app_path().'/Tools/jssdk/jssdk.php';
-        $jssdk = new \JSSDK("wx793c4440ee8af003", "54807aceb14de129375cb3a050a9fa72");
-        $signPackage = $jssdk->GetSignPackage();
+//        require_once app_path().'/Tools/jssdk/jssdk.php';
+//        $jssdk = new \JSSDK("wx793c4440ee8af003", "54807aceb14de129375cb3a050a9fa72");
+//        $signPackage = $jssdk->GetSignPackage();
 
-        $index_advert_list=DB::table("index_advert")
-            ->join('book_pool', 'index_advert.book_id', '=', 'book_pool.id')
-            ->where('book_pool.shelf_status',1)
-            ->select('book_pool.*')
-            ->get();
-
-        $list=BookPool::where('shelf_status', 1)
-            ->orderBy('updatetime', 'desc')
-            ->take(10)
-            ->get();
-        $recommend_list=RecommendBook::leftJoin('book_pool','book_pool.id','=','recommend_book.book_id')
-            ->where('book_pool.shelf_status',1)
-            ->select('book_pool.*')->get();
+        $index_advert_list=Redis::get('index_advert_list');
+        if(empty($index_advert_list)){
+            $index_advert_list=DB::table("index_advert")
+                ->join('book_pool', 'index_advert.book_id', '=', 'book_pool.id')
+                ->where('book_pool.shelf_status',1)
+                ->select('book_pool.*')
+                ->get();
+            Redis::setex('index_advert_list', config('common.redis_timeout'), serialize($index_advert_list));
+        }else{
+            $index_advert_list=unserialize($index_advert_list);
+        }
+        $list=Redis::get('list');
+        if(empty($list)) {
+            $list = BookPool::where('shelf_status', 1)
+                ->orderBy('updatetime', 'desc')
+                ->take(10)
+                ->get();
+            Redis::setex('list', config('common.redis_timeout'), serialize($list));
+        }else{
+            $list=unserialize($list);
+        }
+        $recommend_list=Redis::get('recommend_list');
+        if(empty($recommend_list)){
+            $recommend_list=RecommendBook::leftJoin('book_pool','book_pool.id','=','recommend_book.book_id')
+                ->where('book_pool.shelf_status',1)
+                ->select('book_pool.*')->get();
+            Redis::setex('recommend_list', config('common.redis_timeout'), serialize($recommend_list));
+        }else{
+            $recommend_list=unserialize($recommend_list);
+        }
 
         $like_book_list=get_like_books($uid);
 
-        $indexf=DB::table("book_indexf")
-            ->select('book_indexf.*')
-            ->get();
-        foreach($indexf as $key=>$val){
-            $indexf[$key]->book_list=DB::table("book_indexf_list")
-                ->select('book_pool.*')
-                ->join('book_pool', 'book_indexf_list.book_id', '=', 'book_pool.id')
-                ->where('book_indexf_list.fid',$val->id)
-				->where('book_pool.shelf_status',1)
+        $indexf=Redis::get('indexf');
+        if(empty($indexf)){
+            $indexf=DB::table("book_indexf")
+                ->select('book_indexf.*')
                 ->get();
+            foreach($indexf as $key=>$val){
+                $indexf[$key]->book_list=DB::table("book_indexf_list")
+                    ->select('book_pool.*')
+                    ->join('book_pool', 'book_indexf_list.book_id', '=', 'book_pool.id')
+                    ->where('book_indexf_list.fid',$val->id)
+                    ->where('book_pool.shelf_status',1)
+                    ->get();
+            }
+            Redis::setex('indexf', config('common.redis_timeout'), serialize($indexf));
+        }else{
+            $indexf=unserialize($indexf);
         }
         $time=time();
 
-        $free_list=DB::table("book_free_list")
-            ->join('book_pool', 'book_free_list.book_id', '=', 'book_pool.id')
-            ->join('book_free', 'book_free_list.ext_id', '=', 'book_free.id')
-            ->select('book_pool.*','book_free.starttime','book_free.endtime')
-            ->where('book_free.isdelete',0)
-            ->where('book_free.starttime', '<', $time)
-            ->where('book_free.endtime', '>', $time)
-            ->where('book_pool.shelf_status', 1)
-            ->take(6)
-            ->get();
-
-
+        $free_list=Redis::get('free_list');
+        if(empty($free_list)){
+            $free_list=DB::table("book_free_list")
+                ->join('book_pool', 'book_free_list.book_id', '=', 'book_pool.id')
+                ->join('book_free', 'book_free_list.ext_id', '=', 'book_free.id')
+                ->select('book_pool.*','book_free.starttime','book_free.endtime')
+                ->where('book_free.isdelete',0)
+                ->where('book_free.starttime', '<', $time)
+                ->where('book_free.endtime', '>', $time)
+                ->where('book_pool.shelf_status', 1)
+                ->take(6)
+                ->get();
+            Redis::setex('free_list', config('common.redis_timeout'), serialize($free_list));
+        }else{
+            $free_list=unserialize($free_list);
+        }
         $sign_status=auto_sign(session()->get('user.openid'));
         $tpl_dara=array(
             'indexf'=>$indexf,
             'list'=>$list,
             'recommend_list'=>$recommend_list,
             'index_advert_list'=>$index_advert_list,
-            'signPackage'=>$signPackage,
+//            'signPackage'=>$signPackage,
             'last_read_chapter'=>$last_read_chapter,
             'free_list'=>$free_list,
             'sign_status'=>$sign_status,
@@ -92,11 +127,17 @@ class IndexController extends CommonController
     }
 
     public function deal($id){
-        $deal=BookPool::where('id', $id)->first();
+        $redis_key='book_id_'.$id;
+        if(empty(Redis::get($redis_key))){
+            $deal=BookPool::where('id', $id)->first();
+            Redis::setex($redis_key,config('common.redis_timeout'),serialize($deal));
+        }else{
+            $deal=unserialize(Redis::get($redis_key));
+        }
         //微信自定义分享
-        require_once app_path().'/Tools/jssdk/jssdk.php';
-        $jssdk = new \JSSDK("wx793c4440ee8af003", "54807aceb14de129375cb3a050a9fa72");
-        $signPackage = $jssdk->GetSignPackage();
+//        require_once app_path().'/Tools/jssdk/jssdk.php';
+//        $jssdk = new \JSSDK("wx793c4440ee8af003", "54807aceb14de129375cb3a050a9fa72");
+//        $signPackage = $jssdk->GetSignPackage();
         //取前五章节
         $table_name='book_chapter_'.$deal['id']%20;
         $book_chapter_list=DB::table($table_name)->orderBy('chapter_id', 'asc')->where('book_id',$id)->take(5)->get();
@@ -113,7 +154,7 @@ class IndexController extends CommonController
         $tpl_dara=array(
             'deal'=>$deal,
             'book_chapter_list'=>$book_chapter_list,
-            'signPackage'=>$signPackage,
+//            'signPackage'=>$signPackage,
             'sign_status'=>$sign_status,
             'user_read_list'=>$user_read_list,
         );
@@ -122,7 +163,7 @@ class IndexController extends CommonController
 
 
     public function chapter_list($id){
-        $deal=BookPool::where('id', $id)->first();
+        $deal=get_book_deal($id);
         //取前五章节
         $table_name='book_chapter_'.$deal['id']%20;
         $book_chapter_list=DB::table($table_name)->orderBy('chapter_id', 'asc')->where('book_id',$id)->get();
@@ -136,8 +177,8 @@ class IndexController extends CommonController
     }
 
     public function read($id,$chapter_order,Request $request){
-        $uid=session()->get('user.uid');
-        $deal=BookPool::where('id', $id)->first();
+        $uid=session()->get('user.uid')?session()->get('user.uid'):0;//0匿名用户
+        $deal=get_book_deal($id);
         $table_name='book_chapter_'.$id%20;
         $info=DB::table($table_name)->where(
             array(
@@ -207,34 +248,20 @@ class IndexController extends CommonController
         $book_id=$request->input('book_id');
         $chapter_order=$request->input('chapter_order');
         $uid=session()->get('user.uid');
+        if(empty($uid)){
+            Response::show(0, '请先登录');
+        }
         if(empty($book_id)){
-            return response()->json(array(
-                'code'=>'0',
-                'msg'=>'缺少参数(book_id)',
-                'data'=>array(),
-            ));
+            Response::show(0, '缺少参数(book_id)');
         }
         if(empty($chapter_order)){
-            return response()->json(array(
-                'code'=>'0',
-                'msg'=>'缺少参数(chapter_order)',
-                'data'=>array(),
-            ));
+            Response::show(0, '缺少参数(chapter_order)');
         }
         if(isadd_bookshelf($book_id,$chapter_order,$uid)){
-            return response()->json(array(
-                'code'=>'1',
-                'msg'=>'添加成功',
-                'data'=>array(),
-            ));
+            Response::show(1, '添加成功');
         }else{
-            return response()->json(array(
-                'code'=>'0',
-                'msg'=>'你已经添加过该书',
-                'data'=>array(),
-            ));
+            Response::show(0, '你已经添加过该书');
         }
-
 
     }
 

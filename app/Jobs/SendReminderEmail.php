@@ -13,15 +13,17 @@ class SendReminderEmail extends Job implements ShouldQueue
     use InteractsWithQueue, SerializesModels;
 
     protected $email;
+    protected $code;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($email)
+    public function __construct($email,$code)
     {
         //
         $this->email=$email;
+        $this->code=$code;
     }
 
     /**
@@ -32,7 +34,7 @@ class SendReminderEmail extends Job implements ShouldQueue
     public function handle()
     {
         //
-        Mail::raw('队列测试',function($message){
+        Mail::raw($this->code,function($message){
             $message->to($this->email);
         });
     }
